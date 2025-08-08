@@ -1,0 +1,91 @@
+name: Build & Push Docker Tetris WebApp
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  IMAGE_NAME: yourusername/tetris-webapp
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version extracted: $VERSION"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/tetris-webapp/tetris-webapp:${{ steps.extract.outputs.version }}
+            ${{ env.REGISTRY }}/tetris-webapp/tetris-webapp:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  package-and-push-helm:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Helm chart version and image tag
+        run: |
+          VERSION=${{ needs.build-and-push.outputs.version }}
+
+          # Update the chart version in Chart.yaml
+          sed -i "s/^version: .*/version: $VERSION/" helm/Chart.yaml
+          sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" helm/Chart.yaml
+
+          # Update the image tag in values.yaml
+          sed -i "s/^  tag: .*/  tag: \"$VERSION\"/" helm/values.yaml
+
+          echo "Updated chart version and image tag to: $VERSION"
+
+      - name: Log in to GHCR (Helm)
+        run: |
+          echo "${{ secrets.GHCR_TOKEN }}" | helm registry login -u ${{ github.actor }} --password-stdin ghcr.io
+
+      - name: Package Helm chart
+        run: |
+          VERSION=${{ needs.build-and-push.outputs.version }}
+          helm package helm/ --version $VERSION --app-version $VERSION
+
+      - name: Push Helm chart to GHCR
+        run: |
+          VERSION=${{ needs.build-and-push.outputs.version }}
+          CHART_NAME=$(grep '^name:' helm/Chart.yaml | cut -d' ' -f2)
+          helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/helm-charts

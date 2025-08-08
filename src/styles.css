@@ -1,0 +1,131 @@
+:root {
+    --bg: #0b1020;
+    --panel: #0f1724;
+    --accent: #22c55e;
+    --muted: #94a3b8;
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    font-family:
+        Inter,
+        system-ui,
+        Segoe UI,
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    background: var(--bg);
+    color: #e6eef8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 24px;
+}
+.board {
+    background: var(--panel);
+    padding: 12px;
+    border-radius: 8px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-auto-rows: 30px;
+    gap: 2px;
+    background: #0b1320;
+    padding: 8px;
+    border-radius: 6px;
+}
+.cell {
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border-radius: 3px;
+}
+.cell.empty {
+    background: transparent;
+}
+.panel {
+    width: 220px;
+    background: var(--panel);
+    padding: 12px;
+    border-radius: 8px;
+}
+.h2 {
+    font-size: 16px;
+    margin: 6px 0;
+    color: var(--muted);
+}
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.next-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 28px);
+    grid-auto-rows: 28px;
+    gap: 2px;
+    background: #071021;
+    padding: 6px;
+    border-radius: 4px;
+}
+.btn {
+    background: #162238;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    color: #dbeafe;
+    cursor: pointer;
+}
+.leaderboard {
+    max-height: 200px;
+    overflow: auto;
+}
+.input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+}
+.footer {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 6px 0;
+}
+
+/* color mapping for tetrominoes */
+.tet-1 {
+    background: #60a5fa;
+}
+.tet-2 {
+    background: #f97316;
+}
+.tet-3 {
+    background: #f43f5e;
+}
+.tet-4 {
+    background: #10b981;
+}
+.tet-5 {
+    background: #a78bfa;
+}
+.tet-6 {
+    background: #f59e0b;
+}
+.tet-7 {
+    background: #06b6d4;
+}
