@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tetris-webapp.fullname" . }}
+  labels:
+    {{- include "tetris-webapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    {{- if .Values.anubis.enabled }}
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: anubis
+    {{- end }}
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tetris-webapp.selectorLabels" . | nindent 4 }}
